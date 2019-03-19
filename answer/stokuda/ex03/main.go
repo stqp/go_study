@@ -40,7 +40,7 @@ func _sha256(in string) [32]byte {
 	return sha256.Sum256([]byte(in))
 }
 
-func validate_user(name string, pass string) bool {
+func validateUser(name string, pass string) bool {
 	type User struct {
 		Name     string
 		Password string
@@ -88,7 +88,7 @@ func main() {
 			return
 		}
 
-		if validate_user(name, password) {
+		if validateUser(name, password) {
 			hash := fmt.Sprintf("%x", _sha256(name+password))
 			w.Write([]byte(hash + "\n"))
 			return

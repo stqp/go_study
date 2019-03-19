@@ -36,12 +36,8 @@ func init() {
 	}
 }
 
-func _sha256(in string) [32]byte {
-	return sha256.Sum256([]byte(in))
-}
-
-func validate_user(name string, pass string) bool {
-	hash := fmt.Sprintf("%x", _sha256(name+pass))
+func validateUser(name string, pass string) bool {
+	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(name+pass)))
 	rows, err := db.Query("select * from users where hash = '" + hash + "';")
 	defer rows.Close()
 	if err != nil {
@@ -92,7 +88,7 @@ func main() {
 			return
 		}
 
-		if validate_user(name, password) {
+		if validateUser(name, password) {
 			w.Write([]byte("OK\n"))
 			return
 		}

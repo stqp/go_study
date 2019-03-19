@@ -35,7 +35,7 @@ func init() {
 	}
 }
 
-func validate_user(name string, pass string) bool {
+func validateUser(name string, pass string) bool {
 	type User struct {
 		Name     string
 		Password string
@@ -83,7 +83,7 @@ func main() {
 			return
 		}
 
-		if validate_user(name, password) {
+		if validateUser(name, password) {
 			w.Write([]byte("OK"))
 			return
 		}

@@ -35,7 +35,7 @@ func init() {
 	}
 }
 
-func validate_user(name string, pass string) bool {
+func validateUser(name string, pass string) bool {
 	rows, err := db.Query("select * from users where name = '" + name + "' and password = '" + pass + "';")
 	defer rows.Close()
 	if err != nil {
@@ -86,7 +86,7 @@ func main() {
 			return
 		}
 
-		if validate_user(name, password) {
+		if validateUser(name, password) {
 			w.Write([]byte("OK\n"))
 			return
 		}
