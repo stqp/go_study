@@ -1,0 +1,6 @@
+[01011789@CA1525 demo]$ curl -X POST "http://localhost:9999/auth?name=user01&password=password01"
+4de43d6847096454adf50cc4fed29969343af2e6bcd5e809e57df071d6197468
+[01011789@CA1525 demo]$ curl -X POST "http://localhost:9999/auth?name=user02&password=password02"
+965c596433b550f418265f5dcbc61e8a4dcfb70c2c4f3f4f57811ad4429c9470
+[01011789@CA1525 demo]$ curl -X POST "http://localhost:9999/auth?name=user03&password=password03"
+c8192233749fc1e067d21c51855a2ca5522cbed89808ef93806873e8be393582

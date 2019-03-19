@@ -1,0 +1,168 @@
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"net/http"
+
+	"github.com/go-chi/chi"
+	_ "github.com/go-sql-driver/mysql"
+)
+
+var db *sql.DB
+
+func init() {
+	const (
+		dbName = "db01"
+		dbUser = "app01"
+		dbPass = "app01"
+		dbHost = "127.0.0.1"
+		dbPort = "3306"
+	)
+
+	dbSource := fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8",
+		dbUser,
+		dbPass,
+		dbHost,
+		dbPort,
+		dbName)
+
+	var err error
+	db, err = sql.Open("mysql", dbSource)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func validate_user(name string, pass string) bool {
+	type User struct {
+		Name     string
+		Password string
+	}
+
+	users := []User{
+		{Name: "user01", Password: "password01"},
+		{Name: "user02", Password: "password02"},
+		{Name: "user03", Password: "password03"},
+		{Name: "user04", Password: "password04"},
+	}
+
+	for _, user := range users {
+		if user.Name == name && user.Password == pass {
+			return true
+		}
+	}
+	return false
+}
+
+func main() {
+
+	r := chi.NewRouter()
+
+	r.Post("/auth", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+
+		q := r.URL.Query()
+		if q == nil {
+			w.Write([]byte("parameter is nothing..."))
+			return
+		}
+
+		name, password := "", ""
+		for k, v := range q {
+			if k == "name" {
+				name = v[0]
+			} else if k == "password" {
+				password = v[0]
+			}
+		}
+
+		if name == "" || password == "" {
+			w.Write([]byte("either name or password parameter is missing..."))
+			return
+		}
+
+		if validate_user(name, password) {
+			w.Write([]byte("OK"))
+			return
+		}
+
+		w.Write([]byte("NG"))
+		return
+	})
+
+	r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+
+		q := r.URL.Query()
+		if q == nil {
+			w.Write([]byte("parameter is nothing..."))
+			return
+		}
+
+		name, password := "", ""
+		for k, v := range q {
+			if k == "name" {
+				name = v[0]
+			} else if k == "password" {
+				password = v[0]
+			}
+		}
+
+		if name == "" || password == "" {
+			w.Write([]byte("either name or password parameter is missing..."))
+			return
+		}
+
+		sql := "insert into users(name, password) values('" + name + "','" + password + "');"
+		_, err := db.Query(sql)
+		if err != nil {
+			w.Write([]byte("internal db error happened..."))
+			return
+		}
+
+		w.Write([]byte("register success."))
+		return
+	})
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		rows, err := db.Query("select * from users")
+		defer rows.Close()
+		if err != nil {
+			panic(err.Error())
+		}
+
+		columns, err := rows.Columns()
+		if err != nil {
+			panic(err.Error())
+		}
+
+		values := make([]sql.RawBytes, len(columns))
+		scanArgs := make([]interface{}, len(values))
+		for i := range values {
+			scanArgs[i] = &values[i]
+		}
+
+		for rows.Next() {
+			err = rows.Scan(scanArgs...)
+			if err != nil {
+				panic(err.Error())
+			}
+
+			var value string
+			for i, col := range values {
+				if col == nil {
+					value = "NULL"
+				} else {
+					value = string(col)
+				}
+				w.Write([]byte(columns[i] + ": " + value + "\n"))
+			}
+			w.Write([]byte("-----------------------------------\n"))
+		}
+	})
+
+	http.ListenAndServe(":9999", r)
+
+}
